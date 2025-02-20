@@ -1,10 +1,11 @@
 local http = require("http")
 local json = require("json")
+local github = require("github")
 local util = {}
 
 util.__index = util
 local utilSingleton = setmetatable({}, util)
-utilSingleton.SOURCE_URL = "https://raw.githubusercontent.com/ahai-code/sdk-sources/main/bun.json"
+utilSingleton.SOURCE_URL = "https://api.github.com/repos/oven-sh/bun/releases"
 utilSingleton.RELEASES ={}
 
 function util:compare_versions(v1o, v2o)
@@ -44,7 +45,9 @@ function util:getInfo()
     if resp.status_code ~= 200 then
         error("Failed to get information: status_code =>" .. resp.status_code)
     end
-    local respInfo = json.decode(resp.body)[RUNTIME.osType]
+    local respInfo = json.decode(resp.body)
+    local fromGH = github:convertFromGH(respInfo)
+    respInfo = fromGH[RUNTIME.osType]
     for version, array in pairs(respInfo) do
         local url = ""
         for _, obj in ipairs(array) do
